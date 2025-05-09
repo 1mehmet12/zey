@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mehmet Emin Alptekin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Login section */
+        .login-section {
+            display: block; /* Initially visible */
+            min-height: 100vh;
+        }
+
+        /* Success page styles */
+        .success-section {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            overflow: hidden;
+            transition: background 1s ease;
+            z-index: 9999;
+        }
+
+        .success-container {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hello-text {
+            font-size: 4.5rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .hello-text.animated {
+            animation: bounce 2s infinite;
+        }
+
+        .hello-text:hover {
+            transform: scale(1.1);
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .retry-button {
+            display: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .retry-button:hover {
+            background: white;
+            color: #FF6B6B;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .confetti-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes textSplit {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(960deg);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hello-text {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hello-text {
+                font-size: 2.5rem;
+            }
+            .retry-button {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- İlk Pop-up mesajı -->
+    <div class="popup-overlay" id="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <h2>Hoş Geldiniz!</h2>
+            <p>Lütfen kullanıcı adı ve şifrenizi DOĞRU giriniz.</p>
+            <div class="popup-input">
+                <input type="text" placeholder="Bilmiyorsanız 'BİLMİYORUM' yazın" id="popupInput">
+            </div>
+            <button class="popup-btn" onclick="checkAndClose()">Tamam</button>
+        </div>
+    </div>
+
+    <!-- Haha Pop-up mesajı -->
+    <div class="popup-overlay" id="hahaPopup" style="display: none;">
+        <div class="popup-content haha-content">
+            <span class="close-btn" onclick="closeHahaPopup()">&times;</span>
+            <h2 class="haha-text">HAHAHHAHA</h2>
+            <button class="popup-btn" onclick="showNextPopup()">Tamam</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="nextPopup" style="display: none;">
+        <div class="popup-content next-content">
+            <span class="close-btn" onclick="closeNextPopup()">&times;</span>
+            <h2 class="next-text">Dene bakalım ne olacak görecez...</h2>
+            <button class="popup-btn next-btn" onclick="closeNextPopup()">Tamam</button>
+        </div>
+    </div>
+
+    <!-- Ne oldu olmadı mı? Pop-up mesajı -->
+    <div class="popup-overlay" id="failedAttemptPopup" style="display: none;">
+        <div class="popup-content failed-content">
+            <span class="close-btn" onclick="closeFailedAttemptPopup()">&times;</span>
+            <h2 class="failed-text">Ne oldu olmadı mı?</h2>
+            <p class="failed-text">Tüm şifrelerini çaldım HAHAHAH!</p>
+            <button class="popup-btn failed-btn" onclick="showCredentialsPopup()">Tamam</button>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Bilgileri Pop-up mesajı -->
+    <div class="popup-overlay" id="credentialsPopup" style="display: none;">
+        <div class="popup-content credentials-content">
+            <span class="close-btn" onclick="closeCredentialsPopup()">&times;</span>
+            <h2 class="credentials-title">AL BAKAM HADİ YİNE İYİSİN!</h2>
+            <div class="credentials-info">
+                <p class="credentials-text">Kullanıcı adı: <span>Ben Zeynep</span></p>
+                <p class="credentials-text">Şifre: <span>mehmet</span></p>
+            </div>
+            <button class="popup-btn credentials-btn" onclick="closeCredentialsPopup()">Tamam</button>
+        </div>
+    </div>
+
+    <!-- Başarılı Giriş Pop-up mesajı -->
+    <div class="popup-overlay" id="successPopup" style="display: none;">
+        <div class="popup-content success-content">
+            <h2 class="success-title">Aferin!</h2>
+            <div class="success-info">
+                <p class="success-text">Giriş yaptın!</p>
+            </div>
+            <button class="popup-btn success-btn" onclick="redirectToSuccess()">Tamam</button>
+        </div>
+    </div>
+    
+    <div class="popup-overlay" id="warningPopup" style="display: none;">
+        <div class="popup-content warning-content">
+            <span class="close-btn" onclick="closeWarningPopup()">&times;</span>
+            <h2 class="warning-text">Düzgün yaz şunu!</h2>
+            <p class="warning-detail">'BİLMİYORUM'</p>
+            <button class="popup-btn warning-btn" onclick="closeWarningPopup()">Anladım</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <img src="images/1.png" alt="Çiçek" class="flower top-left">
+        <img src="images/2.png" alt="Çiçek" class="flower bottom-left">
+        
+        <!-- Login form ve çevresi -->
+        <img src="images/3.png" alt="Çiçek" class="flower form-left">
+        
+        <div class="login-form">
+            <h1>Hoş Geldiniz</h1>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="login-btn">Giriş Yap</button>
+            </form>
+            <img src="images/6.png" alt="Çiçek" class="flower button-bottom">
+        </div>
+        
+        <!-- Sağ üst ve sağ alt çiçekler -->
+        <img src="images/5.png" alt="Çiçek" class="flower top-right">
+        <img src="images/4.png" alt="Çiçek" class="flower bottom-right">
+    </div>
+    
+    <!-- Success Section -->
+    <div class="success-section">
+        <div class="confetti-container"></div>
+        <div class="star-container"></div>
+        <div class="success-container">
+            <h1 class="hello-text animated">Merhaba</h1>
+            <button class="retry-button">Tekrar</button>
+            <div class="bored-container" style="display: none;">
+                <p class="bored-text">Sıkıldın mı?</p>
+                <div class="choice-buttons">
+                    <button class="choice-btn yes-btn">EVET</button>
+                    <button class="choice-btn no-btn">HAYIR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reminder Pop-up -->
+    <div class="popup-overlay" id="reminderPopup">
+        <div class="popup-content reminder-content">
+            <h2 class="reminder-text">UNUTMA BENİM DÜNYAMDASIN</h2>
+            <button class="popup-btn reminder-btn">Anladım</button>
+        </div>
+    </div>
+
+    <!-- Gallery Transition Section -->
+    <div class="gallery-transition">
+        <div class="darkness-overlay"></div>
+        <div class="transition-text-container">
+            <h2 class="transition-text">O Zaman gel başka bir dünyaya geçiyoruz...</h2>
+        </div>
+    </div>
+
+    <!-- Gallery Section -->
+    <div class="gallery-section">
+        <div class="gallery-header">
+            <h1 class="gallery-title">GALERİ</h1>
+        </div>
+        <div class="gallery-scroll-container">
+            <!-- Photo 1 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/1.jpg" alt="Fotoğraf 1" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Hayatta en güzel anlar, beklenmedik zamanlarda ortaya çıkanlardır.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 2 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/2.jpg" alt="Fotoğraf 2" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Bazen bir fotoğraf, bin kelimeden daha fazlasını anlatabilir.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 3 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/3.jpg" alt="Fotoğraf 3" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Her bir anı yakalamak, zamanı durdurmanın en güzel yoludur.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 4 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/4.jpg" alt="Fotoğraf 4" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Doğanın güzelliği, içimizdeki huzurun yansımasıdır.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 5 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/5.jpg" alt="Fotoğraf 5" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Küçük detaylar, büyük hikayeler anlatır.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 6 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/6.jpg" alt="Fotoğraf 6" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Mutluluğun sırrı, anı yaşamakta saklıdır.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 7 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/7.jpg" alt="Fotoğraf 7" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Bazen gözlerimizle değil, kalbimizle görürüz en güzel manzaraları.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 8 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/8.jpg" alt="Fotoğraf 8" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Her yolculuk bir adımla başlar, her anı bir karareyle ölümsüzleşir.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 9 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/9.jpg" alt="Fotoğraf 9" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Geçmiş anılarımız, geleceğimize ışık tutar.</p>
+                </div>
+            </div>
+            
+            <!-- Photo 10 -->
+            <div class="gallery-item">
+                <div class="photo-container">
+                    <img src="images/gallery/10.jpg" alt="Fotoğraf 10" class="gallery-photo">
+                </div>
+                <div class="photo-description">
+                    <p>Hayat bir koleksiyon gibidir; en değerli anları biriktiririz.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const helloText = document.querySelector('.hello-text');
+            const retryButton = document.querySelector('.retry-button');
+            const successSection = document.querySelector('.success-section');
+            const starContainer = document.querySelector('.star-container');
+            let isInitialState = true;
+            let retryCount = 0;
+
+            // Background color combinations
+            const backgroundColors = [
+                'linear-gradient(135deg, #9b59b6, #8e44ad)',
+                'linear-gradient(135deg, #e74c3c, #c0392b)',
+                'linear-gradient(135deg, #3498db, #2980b9)',
+                'linear-gradient(135deg, #f1c40f, #f39c12)',
+                'linear-gradient(135deg, #1abc9c, #16a085)'
+            ];
+
+            // Fun messages for retry button
+            const funMessages = [
+                'Aferin Devam', 'Güzellllll', 'Yeter!'
+            ];
+
+            // Create stars around text
+            function createStars() {
+                const starCount = 20;
+                starContainer.innerHTML = '';
+                
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.cssText = `
+                        left: ${Math.random() * 100}%;
+                        top: ${Math.random() * 100}%;
+                        animation-delay: ${Math.random() * 2}s;
+                    `;
+                    starContainer.appendChild(star);
+                }
+            }
+
+            // Create enhanced confetti
+            function createConfetti(intensity = 1) {
+                const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+                const confettiCount = 150 * intensity;
+                const confettiContainer = document.querySelector('.confetti-container');
+                confettiContainer.innerHTML = '';
+                
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.cssText = `
+                        background-color: ${colors[Math.floor(Math.random() * colors.length)]};
+                        left: ${Math.random() * 100}vw;
+                        animation-duration: ${Math.random() * 3 + 2}s;
+                        animation-delay: ${Math.random() * 2}s;
+                    `;
+                    confettiContainer.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+
+            // Text click event with enhanced effects
+            helloText.addEventListener('click', () => {
+                if (isInitialState) {
+                    isInitialState = false;
+                    helloText.classList.remove('animated');
+                    
+                    // Dramatic text effect
+                    helloText.style.animation = 'textSplit 1s forwards';
+                    successSection.style.background = backgroundColors[0];
+                    
+                    // Create effects
+                    createConfetti(1.5);
+                    createStars();
+                    
+                    setTimeout(() => {
+                        helloText.style.animation = 'fadeIn 1s forwards';
+                        helloText.textContent = 'İşte şimdi oldu!';
+                        retryButton.style.display = 'inline-block';
+                        retryButton.style.animation = 'fadeIn 1s forwards';
+                    }, 1000);
+                }
+            });
+
+            // Enhanced retry button event
+            retryButton.addEventListener('click', () => {
+                retryCount++;
+                const intensity = retryCount + 0.5;
+                
+                if (retryCount <= 3) {
+                    // Update text and effects
+                    helloText.textContent = funMessages[retryCount - 1];
+                    successSection.style.background = backgroundColors[retryCount];
+                    createConfetti(intensity);
+                    
+                    // Button effects
+                    retryButton.classList.add('button-pulse');
+                    setTimeout(() => retryButton.classList.remove('button-pulse'), 500);
+                    
+                    if (retryCount === 3) {
+                        // Final dramatic effect
+                        setTimeout(() => {
+                            helloText.style.animation = 'shake 0.5s ease';
+                            successSection.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                            retryButton.style.animation = 'fadeOut 0.5s forwards';
+                            setTimeout(() => {
+                                retryButton.style.display = 'none';
+                            }, 500);
+                        }, 100);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
